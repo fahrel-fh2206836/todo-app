@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:todo_app/core/app_theme.dart';
+import 'package:todo_app/features/todo/presentation/widgets/todo_card.dart';
 import 'package:todo_app/features/todo/presentation/widgets/todo_stats.dart';
 
 class TodoPage extends StatefulWidget {
@@ -62,17 +63,40 @@ class _TodoPageState extends State<TodoPage> {
                   ),
                 ],
               ),
+              Divider(height: 10),
               _sectionTitle("Todos"),
+              TodoCard(
+                icon: Icons.article,
+                iconBgColor: Color(0xFFE3F2FD),
+                title: 'Study lesson',
+                time: '',
+              ),
+              TodoCard(
+                icon: Icons.emoji_events,
+                iconBgColor: Color(0xFFFFF3E0),
+                title: 'Run 5k',
+                time: '4:00pm',
+              ),
+              TodoCard(
+                icon: Icons.calendar_today,
+                iconBgColor: Color(0xFFEDE7F6),
+                title: 'Go to party',
+                time: '10:00pm',
+              ),
             ],
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(onPressed: () {}, child: Icon(Icons.add),),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        child: Icon(Icons.add),
+      ),
     );
   }
 
   Widget _sectionTitle(String title) {
     return Container(
+      margin: EdgeInsets.fromLTRB(10, 0, 0, 0),
       padding: const EdgeInsets.fromLTRB(15, 5, 15, 5),
       decoration: BoxDecoration(
         color: AppTheme.secondaryColor,
