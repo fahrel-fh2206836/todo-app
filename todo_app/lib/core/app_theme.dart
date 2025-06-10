@@ -6,7 +6,7 @@ class AppTheme {
   static const Color secondaryColor = Color(0xFF4DB6AC);
   static const Color accentColor = Color(0xFF80CBC4);
   static const Color backgroundColor = Color(0xFFE0F2F1);
-  static const Color errorColor = Color(0xFFE57373);
+  static const Color errorColor = Color.fromARGB(255, 235, 51, 51);
   static const Color textColor = Color(0xFF212121);
   static const Color secondaryTextColor = Color(0xFF757575);
 

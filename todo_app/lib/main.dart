@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:todo_app/config/app_theme.dart';
-import 'package:todo_app/config/routes.dart';
-import 'package:todo_app/core/util/injection.dart';
-import 'package:todo_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:todo_app/core/app_theme.dart';
+import 'package:todo_app/core/router.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
@@ -15,8 +13,6 @@ void main() async {
     url: dotenv.env['SUPABASE_URL']!,
   );
 
-  await initializeDependencies();
-
   runApp(const MyApp());
 }
 
@@ -25,18 +21,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (_) => getIt<AuthBloc>(),
-        ),
-      ],
-      child: MaterialApp.router(
-        routerConfig: AppRouter.router,
-        debugShowCheckedModeBanner: false,
-        title: 'Todo App',
-        theme: AppTheme.lightTheme,
-      ),
+    return MaterialApp.router(
+      routerConfig: AppRouter.router,
+      debugShowCheckedModeBanner: false,
+      title: 'Todo App',
+      theme: AppTheme.lightTheme,
     );
   }
 }
