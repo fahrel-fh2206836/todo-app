@@ -1,7 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:todo_app/features/auth/presentation/screens/login_page.dart';
 import 'package:todo_app/features/auth/presentation/screens/register_page.dart';
-import 'package:todo_app/features/todo/presentation/pages/todo_page.dart';
+import 'package:todo_app/features/todo/presentation/screens/todo_page.dart';
 
 class AppRouter {
   // Routes

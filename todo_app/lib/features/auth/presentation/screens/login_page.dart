@@ -98,10 +98,14 @@ class _LoginPageState extends State<LoginPage> {
                       ElevatedButton(
                         onPressed: state is AuthLoading
                             ? null
-                            : () => context.read<AuthCubit>().login(
-                                _emailController.text,
-                                _passwordController.text,
-                              ),
+                            : () {
+                                context.read<AuthCubit>().login(
+                                  _emailController.text,
+                                  _passwordController.text,
+                                );
+                                _emailController.clear();
+                                _passwordController.clear();
+                              },
                         child: state is AuthLoading
                             ? const SizedBox(
                                 height: 20,

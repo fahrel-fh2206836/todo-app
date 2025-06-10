@@ -21,8 +21,8 @@ class Todo {
       userId: json['user_id'],
       name: json['name'],
       isCompleted: json['is_completed'],
-      deadline: json['deadline'],
-      createdAt: json['created_at'],
+      deadline: DateTime.parse(json['deadline']),
+      createdAt: DateTime.parse(json['created_at']).toLocal(),
     );
   }
 
@@ -32,8 +32,8 @@ class Todo {
       'user_id': userId,
       'name': name,
       'is_completed': isCompleted,
-      'deadline': deadline,
-      'createdAt': createdAt,
+      'deadline': deadline.toIso8601String(),
+      'createdAt': createdAt.toIso8601String(),
     };
   }
 }
