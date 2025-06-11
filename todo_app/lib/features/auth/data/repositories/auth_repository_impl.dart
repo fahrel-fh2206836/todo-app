@@ -1,5 +1,6 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:todo_app/features/auth/domain/entities/profile.dart';
 import 'package:todo_app/features/auth/domain/repositories/auth_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -11,7 +12,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> register(String email, String password, String fullName) async {
+  Future<void> register(String email, String password, String displayName) async {
     final signUpResponse = await supabase.auth.signUp(
       email: email,
       password: password,
@@ -25,12 +26,29 @@ class AuthRepositoryImpl implements AuthRepository {
 
     await supabase.from('profile').insert({
       'id': user.id,
-      'full_name': fullName,
+      'full_name': displayName,
     });
   }
 
   @override
   Future<void> logout() async {
     await supabase.auth.signOut();
+  }
+
+  @override
+  Future<Profile> getUser() async {
+    final userId = supabase.auth.currentUser?.id;
+
+    if (userId == null) {
+      throw Exception("User has not been authenticated!");
+    }
+
+    final data = await supabase
+        .from('profile')
+        .select()
+        .eq('id', userId)
+        .single();
+
+    return Profile.fromJson(data);
   }
 }

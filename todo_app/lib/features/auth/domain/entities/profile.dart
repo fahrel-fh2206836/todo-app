@@ -1,11 +1,11 @@
-class User {
+class Profile {
   final String id;
   final String displayName;
 
-  User({required this.id, required this.displayName});
+  Profile({required this.id, required this.displayName});
 
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
+  factory Profile.fromJson(Map<String, dynamic> json) {
+    return Profile(
       id: json['id'],
       displayName: json['display_name'],
     );

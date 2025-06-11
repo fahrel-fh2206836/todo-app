@@ -8,7 +8,7 @@ class TodoRepositoryImpl implements TodoRepository {
   @override
   Future<void> addTodo(String name, DateTime deadline) async {
     final response = await supabase.from('todo').insert({
-      'user_id': supabase.auth.currentUser!.id,
+      'profile_id': supabase.auth.currentUser!.id,
       'name': name,
       'deadline': deadline.toIso8601String(),
     });
@@ -53,7 +53,7 @@ class TodoRepositoryImpl implements TodoRepository {
     final data = await supabase
         .from('todo')
         .select()
-        .eq('user_id', userId)
+        .eq('profile_id', userId)
         .order('deadline', ascending: false);
 
     final List<Todo> todos = data.map((item) => Todo.fromJson(item)).toList();
