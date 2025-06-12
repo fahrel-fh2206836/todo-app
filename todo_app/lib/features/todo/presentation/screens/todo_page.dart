@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:todo_app/core/app_theme.dart';
-import 'package:todo_app/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:todo_app/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:todo_app/features/auth/presentation/cubit/auth_state.dart';
 import 'package:todo_app/features/todo/data/repositories/todo_repository.dart';
+import 'package:todo_app/features/todo/domain/entities/todo.dart';
 import 'package:todo_app/features/todo/presentation/cubit/todo_cubit.dart';
 import 'package:todo_app/features/todo/presentation/cubit/todo_state.dart';
+import 'package:todo_app/features/todo/presentation/widgets/empty_widget.dart';
 import 'package:todo_app/features/todo/presentation/widgets/todo_card.dart';
 import 'package:todo_app/features/todo/presentation/widgets/todo_stats.dart';
 
@@ -19,21 +20,37 @@ class TodoPage extends StatefulWidget {
 }
 
 class _TodoPageState extends State<TodoPage> {
-  final titleController = TextEditingController();
+  final _titleController = TextEditingController();
+  DateTime? _selectedDate;
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _selectDate() async {
+    _selectedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthCubit, AuthState>(
-      builder: (context, state) {
-        if (state is AuthSuccess) {
+      builder: (authContext, authState) {
+        if (authState is AuthSuccess) {
           return BlocProvider(
             create: (_) =>
-                TodoCubit(TodoRepositoryImpl())..getTodos(state.profile.id),
+                TodoCubit(TodoRepositoryImpl())..getTodos(authState.profile.id),
             child: Scaffold(
               backgroundColor: AppTheme.backgroundColor,
               appBar: AppBar(
                 title: Text(
-                  "${state.profile.displayName}'s Todos",
+                  "${authState.profile.displayName}'s Todos",
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 centerTitle: true,
@@ -41,8 +58,8 @@ class _TodoPageState extends State<TodoPage> {
                 actions: [
                   IconButton(
                     onPressed: () {
-                      AuthRepositoryImpl().logout();
-                      context.pop();
+                      authContext.read<AuthCubit>().logout();
+                      authContext.pop();
                     },
                     icon: Icon(Icons.logout),
                   ),
@@ -86,22 +103,26 @@ class _TodoPageState extends State<TodoPage> {
                       ),
                       Divider(height: 10),
                       BlocBuilder<TodoCubit, TodoState>(
-                        builder: (context, state) {
-                          if (state is TodoLoading) {
+                        builder: (todoContext, todoState) {
+                          if (todoState is TodoLoading) {
                             return const Center(
                               child: CircularProgressIndicator(),
                             );
                           }
-                          if (state is TodoFailure) {
-                            return Center(child: Text(state.error));
+                          if (todoState is TodoFailure) {
+                            return Center(child: Text(todoState.error));
                           }
-                          if (state is TodoLoaded) {
+                          if (todoState is TodoLoaded) {
+                            if (todoState.todos.isEmpty) {
+                              return EmptyWidget(
+                                text: "You have not created any todos.",
+                              );
+                            }
                             return Expanded(
                               child: ListView.builder(
-                                itemCount: state.todos.length,
+                                itemCount: todoState.todos.length,
                                 itemBuilder: (context, index) {
-                                  final todo = state.todos[index];
-                                          
+                                  final todo = todoState.todos[index];
                                   return Padding(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 12,
@@ -110,6 +131,26 @@ class _TodoPageState extends State<TodoPage> {
                                     child: TodoCard(
                                       title: todo.name,
                                       time: todo.deadline.toIso8601String(),
+                                      isChecked: todo.isCompleted,
+                                      onDelete: () {
+                                        setState(() {
+                                          context.read<TodoCubit>().deleteTodo(
+                                            authState.profile.id,
+                                            todo.id,
+                                          );
+                                        });
+                                      },
+                                      onChecked: (value) {
+                                        setState(() {
+                                          context.read<TodoCubit>().updateTodo(
+                                            authState.profile.id,
+                                            todo.id,
+                                            todo.name,
+                                            todo.deadline,
+                                            value!
+                                          );
+                                        });
+                                      },
                                     ),
                                   );
                                 },
@@ -125,27 +166,70 @@ class _TodoPageState extends State<TodoPage> {
               ),
               floatingActionButton: FloatingActionButton(
                 onPressed: () async {
-                  final title = await showDialog<String>(
+                  await showDialog<Todo>(
                     context: context,
                     builder: (context) => AlertDialog(
                       title: const Text('Add Todo'),
-                      content: TextField(
-                        controller: titleController,
-                        decoration: const InputDecoration(labelText: 'Title'),
+                      content: SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.15,
+                        child: Column(
+                          spacing: 10,
+                          children: [
+                            TextField(
+                              controller: _titleController,
+                              decoration: const InputDecoration(
+                                labelText: 'Title',
+                                prefixIcon: Icon(Icons.title),
+                              ),
+                            ),
+                            TextField(
+                              decoration: const InputDecoration(
+                                labelText: 'Deadline',
+                                filled: true,
+                                prefixIcon: Icon(Icons.calendar_month),
+                              ),
+                              readOnly: true,
+                              onTap: () {
+                                _selectDate();
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                       actions: [
                         TextButton(
                           onPressed: () {
-                            Navigator.pop(context, titleController.text);
+                            if (_selectedDate == null ||
+                                _titleController.text.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text("Fill all fields!"),
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.error,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              );
+                            }
+                            setState(() {
+                              context.read<TodoCubit>().addTodo(
+                                authState.profile.id,
+                                _titleController.text,
+                                _selectedDate!,
+                              );
+                            });
+                            _selectedDate = null;
+                            _titleController.text = "";
+                            Navigator.pop(context);
                           },
                           child: const Text('Add'),
                         ),
                       ],
                     ),
                   );
-                  if (title != null && title.isNotEmpty) {
-                    // context.read<TodoCubit>().addTodo(title);
-                  }
                 },
                 child: Icon(Icons.add),
               ),

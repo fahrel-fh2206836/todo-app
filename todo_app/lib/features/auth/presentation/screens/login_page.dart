@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:todo_app/core/app_theme.dart';
 import 'package:todo_app/core/router.dart';
-import 'package:todo_app/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:todo_app/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:todo_app/features/auth/presentation/cubit/auth_state.dart';
 import 'package:todo_app/features/auth/presentation/widgets/auth_textfields.dart';

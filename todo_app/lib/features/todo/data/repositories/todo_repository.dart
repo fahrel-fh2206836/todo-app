@@ -32,7 +32,7 @@ class TodoRepositoryImpl implements TodoRepository {
     String todoId,
     String name,
     DateTime deadline,
-    String isCompleted,
+    bool isCompleted,
   ) async {
     final response = await supabase
         .from('todo')

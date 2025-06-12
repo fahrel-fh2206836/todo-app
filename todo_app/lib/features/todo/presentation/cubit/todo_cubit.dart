@@ -31,7 +31,7 @@ class TodoCubit extends Cubit<TodoState> {
     String todoId,
     String name,
     DateTime deadline,
-    String isCompleted,
+    bool isCompleted,
   ) async {
     try {
       await todoRepository.updateTodo(todoId, name, deadline, isCompleted);
