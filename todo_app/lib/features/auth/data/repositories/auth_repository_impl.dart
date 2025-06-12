@@ -26,7 +26,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
     await supabase.from('profile').insert({
       'id': user.id,
-      'full_name': displayName,
+      'display_name': displayName,
     });
   }
 

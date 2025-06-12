@@ -10,7 +10,7 @@ class TodoRepositoryImpl implements TodoRepository {
     final response = await supabase.from('todo').insert({
       'profile_id': supabase.auth.currentUser!.id,
       'name': name,
-      'deadline': deadline.toIso8601String(),
+      'deadline': deadline,
     });
 
     if (response.error != null) {
@@ -38,7 +38,7 @@ class TodoRepositoryImpl implements TodoRepository {
         .from('todo')
         .update({
           'name': name,
-          'deadline': deadline.toIso8601String(),
+          'deadline': deadline,
           'is_completed': isCompleted,
         })
         .eq('id', todoId);

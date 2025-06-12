@@ -21,6 +21,7 @@ class TodoPage extends StatefulWidget {
 
 class _TodoPageState extends State<TodoPage> {
   final _titleController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
   DateTime? _selectedDate;
 
   @override
@@ -30,12 +31,20 @@ class _TodoPageState extends State<TodoPage> {
   }
 
   Future<void> _selectDate() async {
-    _selectedDate = await showDatePicker(
+    final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
+
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+        _dateController.text =
+            "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+      });
+    }
   }
 
   @override
@@ -70,7 +79,6 @@ class _TodoPageState extends State<TodoPage> {
                 child: SafeArea(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 10,
                     children: [
                       _sectionTitle("Todo Statistics"),
                       Column(
@@ -102,24 +110,24 @@ class _TodoPageState extends State<TodoPage> {
                         ],
                       ),
                       Divider(height: 10),
-                      BlocBuilder<TodoCubit, TodoState>(
-                        builder: (todoContext, todoState) {
-                          if (todoState is TodoLoading) {
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
-                          }
-                          if (todoState is TodoFailure) {
-                            return Center(child: Text(todoState.error));
-                          }
-                          if (todoState is TodoLoaded) {
-                            if (todoState.todos.isEmpty) {
-                              return EmptyWidget(
-                                text: "You have not created any todos.",
+                      Expanded(
+                        child: BlocBuilder<TodoCubit, TodoState>(
+                          builder: (todoContext, todoState) {
+                            if (todoState is TodoLoading) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
                               );
                             }
-                            return Expanded(
-                              child: ListView.builder(
+                            if (todoState is TodoFailure) {
+                              return Center(child: Text(todoState.error));
+                            }
+                            if (todoState is TodoLoaded) {
+                              if (todoState.todos.isEmpty) {
+                                return EmptyWidget(
+                                  text: "You have not created any todos.",
+                                );
+                              }
+                              return ListView.builder(
                                 itemCount: todoState.todos.length,
                                 itemBuilder: (context, index) {
                                   final todo = todoState.todos[index];
@@ -134,31 +142,35 @@ class _TodoPageState extends State<TodoPage> {
                                       isChecked: todo.isCompleted,
                                       onDelete: () {
                                         setState(() {
-                                          context.read<TodoCubit>().deleteTodo(
-                                            authState.profile.id,
-                                            todo.id,
-                                          );
+                                          todoContext
+                                              .read<TodoCubit>()
+                                              .deleteTodo(
+                                                authState.profile.id,
+                                                todo.id,
+                                              );
                                         });
                                       },
                                       onChecked: (value) {
                                         setState(() {
-                                          context.read<TodoCubit>().updateTodo(
-                                            authState.profile.id,
-                                            todo.id,
-                                            todo.name,
-                                            todo.deadline,
-                                            value!
-                                          );
+                                          todoContext
+                                              .read<TodoCubit>()
+                                              .updateTodo(
+                                                authState.profile.id,
+                                                todo.id,
+                                                todo.name,
+                                                todo.deadline,
+                                                value!,
+                                              );
                                         });
                                       },
                                     ),
                                   );
                                 },
-                              ),
-                            );
-                          }
-                          return const SizedBox();
-                        },
+                              );
+                            }
+                            return const SizedBox();
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -168,12 +180,11 @@ class _TodoPageState extends State<TodoPage> {
                 onPressed: () async {
                   await showDialog<Todo>(
                     context: context,
-                    builder: (context) => AlertDialog(
+                    builder: (dialogContext) => AlertDialog(
                       title: const Text('Add Todo'),
                       content: SizedBox(
                         height: MediaQuery.of(context).size.height * 0.15,
                         child: Column(
-                          spacing: 10,
                           children: [
                             TextField(
                               controller: _titleController,
@@ -182,16 +193,16 @@ class _TodoPageState extends State<TodoPage> {
                                 prefixIcon: Icon(Icons.title),
                               ),
                             ),
+                            SizedBox(height: 10),
                             TextField(
+                              controller: _dateController,
                               decoration: const InputDecoration(
                                 labelText: 'Deadline',
                                 filled: true,
                                 prefixIcon: Icon(Icons.calendar_month),
                               ),
                               readOnly: true,
-                              onTap: () {
-                                _selectDate();
-                              },
+                              onTap: _selectDate,
                             ),
                           ],
                         ),
@@ -214,15 +225,14 @@ class _TodoPageState extends State<TodoPage> {
                                 ),
                               );
                             }
-                            setState(() {
-                              context.read<TodoCubit>().addTodo(
-                                authState.profile.id,
-                                _titleController.text,
-                                _selectedDate!,
-                              );
-                            });
+                            context.read<TodoCubit>().addTodo(
+                              authState.profile.id,
+                              _titleController.text,
+                              _selectedDate!,
+                            );
                             _selectedDate = null;
                             _titleController.text = "";
+                            _dateController.text = "";
                             Navigator.pop(context);
                           },
                           child: const Text('Add'),
