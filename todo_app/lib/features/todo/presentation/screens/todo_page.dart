@@ -52,197 +52,177 @@ class _TodoPageState extends State<TodoPage> {
     return BlocBuilder<AuthCubit, AuthState>(
       builder: (authContext, authState) {
         if (authState is AuthSuccess) {
-          return BlocProvider(
-            create: (_) =>
-                TodoCubit(TodoRepositoryImpl())..getTodos(authState.profile.id),
-            child: Scaffold(
-              backgroundColor: AppTheme.backgroundColor,
-              appBar: AppBar(
-                title: Text(
-                  "${authState.profile.displayName}'s Todos",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                centerTitle: true,
-                automaticallyImplyLeading: false,
-                actions: [
-                  IconButton(
-                    onPressed: () {
-                      authContext.read<AuthCubit>().logout();
-                      authContext.pop();
-                    },
-                    icon: Icon(Icons.logout),
-                  ),
-                ],
+          context.read<TodoCubit>().getTodos(authState.profile.id);
+          return Scaffold(
+            backgroundColor: AppTheme.backgroundColor,
+            appBar: AppBar(
+              title: Text(
+                "${authState.profile.displayName}'s Todos",
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              body: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: SafeArea(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _sectionTitle("Todo Statistics"),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          TodoStat(
-                            icon: Icons.check,
-                            iconBgColor: AppTheme.accentColor,
-                            title: "Finished Todos",
-                            value: "3",
-                          ),
-                          TodoStat(
-                            icon: Icons.pending_actions,
-                            iconBgColor: const Color.fromARGB(
-                              255,
-                              247,
-                              227,
-                              51,
-                            ),
-                            title: "Pending Todos",
-                            value: "3",
-                          ),
-                          TodoStat(
-                            icon: Icons.assignment_late,
-                            iconBgColor: AppTheme.errorColor,
-                            title: "Overdue Todos",
-                            value: "3",
-                          ),
-                        ],
-                      ),
-                      Divider(height: 10),
-                      Expanded(
-                        child: BlocBuilder<TodoCubit, TodoState>(
-                          builder: (todoContext, todoState) {
-                            if (todoState is TodoLoading) {
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            }
-                            if (todoState is TodoFailure) {
-                              return Center(child: Text(todoState.error));
-                            }
-                            if (todoState is TodoLoaded) {
-                              if (todoState.todos.isEmpty) {
-                                return EmptyWidget(
-                                  text: "You have not created any todos.",
-                                );
-                              }
-                              return ListView.builder(
-                                itemCount: todoState.todos.length,
-                                itemBuilder: (context, index) {
-                                  final todo = todoState.todos[index];
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 6,
-                                    ),
-                                    child: TodoCard(
-                                      title: todo.name,
-                                      time: todo.deadline.toIso8601String(),
-                                      isChecked: todo.isCompleted,
-                                      onDelete: () {
-                                        setState(() {
-                                          todoContext
-                                              .read<TodoCubit>()
-                                              .deleteTodo(
-                                                authState.profile.id,
-                                                todo.id,
-                                              );
-                                        });
-                                      },
-                                      onChecked: (value) {
-                                        setState(() {
-                                          todoContext
-                                              .read<TodoCubit>()
-                                              .updateTodo(
-                                                authState.profile.id,
-                                                todo.id,
-                                                todo.name,
-                                                todo.deadline,
-                                                value!,
-                                              );
-                                        });
-                                      },
-                                    ),
-                                  );
-                                },
-                              );
-                            }
-                            return const SizedBox();
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
+              centerTitle: true,
+              automaticallyImplyLeading: false,
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    authContext.read<AuthCubit>().logout();
+                    authContext.pop();
+                  },
+                  icon: Icon(Icons.logout),
                 ),
-              ),
-              floatingActionButton: FloatingActionButton(
-                onPressed: () async {
-                  await showDialog<Todo>(
-                    context: context,
-                    builder: (dialogContext) => AlertDialog(
-                      title: const Text('Add Todo'),
-                      content: SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.15,
-                        child: Column(
-                          children: [
-                            TextField(
-                              controller: _titleController,
-                              decoration: const InputDecoration(
-                                labelText: 'Title',
-                                prefixIcon: Icon(Icons.title),
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            TextField(
-                              controller: _dateController,
-                              decoration: const InputDecoration(
-                                labelText: 'Deadline',
-                                filled: true,
-                                prefixIcon: Icon(Icons.calendar_month),
-                              ),
-                              readOnly: true,
-                              onTap: _selectDate,
-                            ),
-                          ],
+              ],
+            ),
+            body: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _sectionTitle("Todo Statistics"),
+                    SizedBox(height: 10,),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        TodoStat(
+                          icon: Icons.check,
+                          iconBgColor: AppTheme.accentColor,
+                          title: "Finished Todos",
+                          value: "3",
                         ),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            if (_selectedDate == null ||
-                                _titleController.text.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text("Fill all fields!"),
-                                  backgroundColor: Theme.of(
-                                    context,
-                                  ).colorScheme.error,
-                                  behavior: SnackBarBehavior.floating,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
-                              );
-                            }
-                            context.read<TodoCubit>().addTodo(
-                              authState.profile.id,
-                              _titleController.text,
-                              _selectedDate!,
-                            );
-                            _selectedDate = null;
-                            _titleController.text = "";
-                            _dateController.text = "";
-                            Navigator.pop(context);
-                          },
-                          child: const Text('Add'),
+                        TodoStat(
+                          icon: Icons.pending_actions,
+                          iconBgColor: const Color.fromARGB(255, 247, 227, 51),
+                          title: "Pending Todos",
+                          value: "3",
+                        ),
+                        TodoStat(
+                          icon: Icons.assignment_late,
+                          iconBgColor: AppTheme.errorColor,
+                          title: "Overdue Todos",
+                          value: "3",
                         ),
                       ],
                     ),
-                  );
-                },
-                child: Icon(Icons.add),
+                    Divider(height: 10),
+                    Expanded(
+                      child: BlocBuilder<TodoCubit, TodoState>(
+                        builder: (todoContext, todoState) {
+                          if (todoState is TodoFailure) {
+                            return Center(child: Text(todoState.error));
+                          }
+                          if (todoState is TodoLoaded) {
+                            if (todoState.todos.isEmpty) {
+                              return EmptyWidget(
+                                text: "You have not created any todos.",
+                              );
+                            }
+                            return ListView.builder(
+                              itemCount: todoState.todos.length,
+                              itemBuilder: (context, index) {
+                                final todo = todoState.todos[index];
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  child: TodoCard(
+                                    title: todo.name,
+                                    deadline: todo.deadline,
+                                    isChecked: todo.isCompleted,
+                                    onDelete: () {
+                                      todoContext.read<TodoCubit>().deleteTodo(
+                                        authState.profile.id,
+                                        todo.id,
+                                      );
+                                    },
+                                    onChecked: (value) {
+                                      todoContext.read<TodoCubit>().updateTodo(
+                                        authState.profile.id,
+                                        todo.id,
+                                        todo.name,
+                                        todo.deadline,
+                                        value!,
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            );
+                          }
+                          return const SizedBox();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
+            ),
+            floatingActionButton: FloatingActionButton(
+              onPressed: () async {
+                await showDialog<Todo>(
+                  context: context,
+                  builder: (dialogContext) => AlertDialog(
+                    title: const Text('Add Todo'),
+                    content: SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.15,
+                      child: Column(
+                        children: [
+                          TextField(
+                            controller: _titleController,
+                            decoration: const InputDecoration(
+                              labelText: 'Title',
+                              prefixIcon: Icon(Icons.title),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          TextField(
+                            controller: _dateController,
+                            decoration: const InputDecoration(
+                              labelText: 'Deadline',
+                              filled: true,
+                              prefixIcon: Icon(Icons.calendar_month),
+                            ),
+                            readOnly: true,
+                            onTap: _selectDate,
+                          ),
+                        ],
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          if (_selectedDate == null ||
+                              _titleController.text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Fill all fields!"),
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.error,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            );
+                          }
+                          context.read<TodoCubit>().addTodo(
+                            authState.profile.id,
+                            _titleController.text,
+                            _selectedDate!,
+                          );
+                          _selectedDate = null;
+                          _titleController.text = "";
+                          _dateController.text = "";
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Add'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              child: Icon(Icons.add),
             ),
           );
         }
