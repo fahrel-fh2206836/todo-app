@@ -66,13 +66,4 @@ class TodoCubit extends Cubit<TodoState> {
   void onTabChanged() {
     emit(TodoLoading());
   }
-
-  Future<void> getCountTodosByStatus(String userId, TodoStatus status) async {
-    try {
-      final count = await todoRepository.getCountTodosByStatus(userId, status);
-      emit(TodoCountLoaded(count));
-    } catch (e) {
-      emit(TodoFailure(e.toString()));
-    }
-  }
 }

@@ -12,12 +12,6 @@ class TodoLoaded extends TodoState {
   TodoLoaded(this.todos);
 }
 
-class TodoCountLoaded extends TodoState {
-  final int count;
-
-  TodoCountLoaded(this.count);
-}
-
 class TodoFailure extends TodoState {
   final String error;
 
