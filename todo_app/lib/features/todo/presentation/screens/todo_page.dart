@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:todo_app/core/app_constants.dart';
 import 'package:todo_app/core/app_theme.dart';
 import 'package:todo_app/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:todo_app/features/auth/presentation/cubit/auth_state.dart';
@@ -75,6 +76,7 @@ class _TodoPageState extends State<TodoPage>
       });
     }
   }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -109,28 +111,43 @@ class _TodoPageState extends State<TodoPage>
                   children: [
                     _sectionTitle("Todo Statistics"),
                     SizedBox(height: 10),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        TodoStat(
-                          icon: Icons.check,
-                          iconBgColor: AppTheme.accentColor,
-                          title: "Finished Todos",
-                          value: "3",
-                        ),
-                        TodoStat(
-                          icon: Icons.pending_actions,
-                          iconBgColor: const Color.fromARGB(255, 247, 227, 51),
-                          title: "Pending Todos",
-                          value: "3",
-                        ),
-                        TodoStat(
-                          icon: Icons.assignment_late,
-                          iconBgColor: AppTheme.errorColor,
-                          title: "Overdue Todos",
-                          value: "3",
-                        ),
-                      ],
+                    BlocBuilder<TodoCubit, TodoState>(
+                      builder: (todoContext, todoState) {
+                        if (todoState is TodoFailure) {
+                          return Center(child: Text(todoState.error));
+                        }
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            TodoStat(
+                              icon: Icons.check,
+                              iconBgColor: AppTheme.accentColor,
+                              title: "Finished Todos",
+                              todoState: todoState,
+                              todoStatus: TodoStatus.completed,
+                            ),
+                            TodoStat(
+                              icon: Icons.pending_actions,
+                              iconBgColor: const Color.fromARGB(
+                                255,
+                                247,
+                                227,
+                                51,
+                              ),
+                              title: "Pending Todos",
+                              todoState: todoState,
+                              todoStatus: TodoStatus.pending,
+                            ),
+                            TodoStat(
+                              icon: Icons.assignment_late,
+                              iconBgColor: AppTheme.errorColor,
+                              title: "Overdue Todos",
+                              todoState: todoState,
+                              todoStatus: TodoStatus.overdue,
+                            ),
+                          ],
+                        );
+                      },
                     ),
                     Divider(height: 10),
                     SizedBox(height: 10),

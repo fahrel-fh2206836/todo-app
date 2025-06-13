@@ -14,7 +14,19 @@ class TodoCubit extends Cubit<TodoState> {
       final todos = (isCompleted == null)
           ? await todoRepository.getTodos(userId)
           : await todoRepository.getTodos(userId, isCompleted);
-      emit(TodoLoaded(todos));
+      final pendingCount = await todoRepository.getCountTodosByStatus(
+        userId,
+        TodoStatus.pending,
+      );
+      final completedCount = await todoRepository.getCountTodosByStatus(
+        userId,
+        TodoStatus.completed,
+      );
+      final overdueCount = await todoRepository.getCountTodosByStatus(
+        userId,
+        TodoStatus.overdue,
+      );
+      emit(TodoLoaded(todos, pendingCount, completedCount, overdueCount));
     } catch (e) {
       emit(TodoFailure(e.toString()));
     }

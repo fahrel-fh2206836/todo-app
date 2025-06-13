@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:todo_app/core/app_constants.dart';
+import 'package:todo_app/features/todo/presentation/cubit/todo_state.dart';
 
 class TodoStat extends StatelessWidget {
   final IconData icon;
   final Color iconBgColor;
   final String title;
-  final String value;
+  final TodoState todoState;
+  final TodoStatus todoStatus;
 
   const TodoStat({
     required this.icon,
     required this.iconBgColor,
     required this.title,
-    required this.value,
+    required this.todoState,
+    required this.todoStatus,
     super.key,
   });
 
@@ -41,7 +45,15 @@ class TodoStat extends StatelessWidget {
               Text(title),
             ],
           ),
-          Text(value),
+          if (todoState is TodoLoading) CircularProgressIndicator(),
+          if (todoState is TodoLoaded)
+            Text(
+              "${todoStatus == TodoStatus.completed
+                  ? (todoState as TodoLoaded).completedCount
+                  : todoStatus == TodoStatus.pending
+                  ? (todoState as TodoLoaded).pendingCount
+                  : (todoState as TodoLoaded).overdueCount}",
+            ),
         ],
       ),
     );

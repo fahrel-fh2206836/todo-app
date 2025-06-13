@@ -63,26 +63,26 @@ class TodoRepositoryImpl implements TodoRepository {
       final response = await supabase
           .from('todo')
           .select('id')
-          .eq('user_id', userId)
+          .eq('profile_id', userId)
           .eq('is_completed', false)
-          .count(CountOption.exact);
+          .count();
       return response.count;
     } else if (status == TodoStatus.completed) {
       final response = await supabase
           .from('todo')
           .select('id')
-          .eq('user_id', userId)
+          .eq('profile_id', userId)
           .eq('is_completed', true)
-          .count(CountOption.exact);
+          .count();
       return response.count;
     } else {
       final response = await supabase
           .from('todo')
           .select('id')
-          .eq('user_id', userId)
+          .eq('profile_id', userId)
           .eq('is_completed', false)
           .lt('deadline', DateTime.now().toIso8601String())
-          .count(CountOption.exact);
+          .count();
       return response.count;
     }
   }
