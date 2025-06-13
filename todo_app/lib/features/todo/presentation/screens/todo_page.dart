@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:todo_app/core/app_theme.dart';
 import 'package:todo_app/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:todo_app/features/auth/presentation/cubit/auth_state.dart';
-import 'package:todo_app/features/todo/data/repositories/todo_repository.dart';
 import 'package:todo_app/features/todo/domain/entities/todo.dart';
 import 'package:todo_app/features/todo/presentation/cubit/todo_cubit.dart';
 import 'package:todo_app/features/todo/presentation/cubit/todo_state.dart';
@@ -19,15 +18,45 @@ class TodoPage extends StatefulWidget {
   State<TodoPage> createState() => _TodoPageState();
 }
 
-class _TodoPageState extends State<TodoPage> {
+class _TodoPageState extends State<TodoPage>
+    with SingleTickerProviderStateMixin {
   final _titleController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
+  late TabController _tabController;
   DateTime? _selectedDate;
 
   @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_onTabChanged);
+    final userId = context.read<AuthCubit>().state is AuthSuccess
+        ? (context.read<AuthCubit>().state as AuthSuccess).profile.id
+        : null;
+
+    if (userId != null) {
+      context.read<TodoCubit>().getTodos(userId, false); // false = Pending
+    }
+  }
+
+  void _onTabChanged() {
+    context.read<TodoCubit>().onTabChanged();
+    if (_tabController.indexIsChanging)
+      return; // Prevent during swipe animation
+    final isCompleted = _tabController.index == 1;
+    final userId = context.read<AuthCubit>().state is AuthSuccess
+        ? (context.read<AuthCubit>().state as AuthSuccess).profile.id
+        : null;
+
+    if (userId != null) {
+      context.read<TodoCubit>().getTodos(userId, isCompleted);
+    }
+  }
+
+  @override
   void dispose() {
-    _titleController.dispose();
     super.dispose();
+    _titleController.dispose();
   }
 
   Future<void> _selectDate() async {
@@ -52,8 +81,8 @@ class _TodoPageState extends State<TodoPage> {
     return BlocBuilder<AuthCubit, AuthState>(
       builder: (authContext, authState) {
         if (authState is AuthSuccess) {
-          context.read<TodoCubit>().getTodos(authState.profile.id);
           return Scaffold(
+            resizeToAvoidBottomInset: false,
             backgroundColor: AppTheme.backgroundColor,
             appBar: AppBar(
               title: Text(
@@ -76,10 +105,10 @@ class _TodoPageState extends State<TodoPage> {
               padding: const EdgeInsets.all(10.0),
               child: SafeArea(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     _sectionTitle("Todo Statistics"),
-                    SizedBox(height: 10,),
+                    SizedBox(height: 10),
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -104,49 +133,59 @@ class _TodoPageState extends State<TodoPage> {
                       ],
                     ),
                     Divider(height: 10),
+                    SizedBox(height: 10),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(
+                          color: AppTheme.primaryColor,
+                          width: 0.5,
+                        ),
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: TabBar(
+                        indicatorSize: TabBarIndicatorSize.tab,
+                        dividerColor: Colors.transparent,
+                        controller: _tabController,
+                        indicator: BoxDecoration(
+                          color: AppTheme.accentColor,
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        labelColor: Colors.white,
+                        unselectedLabelColor: AppTheme.secondaryColor,
+                        tabs: const [
+                          Tab(text: 'Pending'),
+                          Tab(text: 'Completed'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 20),
                     Expanded(
                       child: BlocBuilder<TodoCubit, TodoState>(
                         builder: (todoContext, todoState) {
+                          if (todoState is TodoLoading) {
+                            return Center(child: CircularProgressIndicator());
+                          }
                           if (todoState is TodoFailure) {
                             return Center(child: Text(todoState.error));
                           }
                           if (todoState is TodoLoaded) {
-                            if (todoState.todos.isEmpty) {
-                              return EmptyWidget(
-                                text: "You have not created any todos.",
-                              );
-                            }
-                            return ListView.builder(
-                              itemCount: todoState.todos.length,
-                              itemBuilder: (context, index) {
-                                final todo = todoState.todos[index];
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  child: TodoCard(
-                                    title: todo.name,
-                                    deadline: todo.deadline,
-                                    isChecked: todo.isCompleted,
-                                    onDelete: () {
-                                      todoContext.read<TodoCubit>().deleteTodo(
-                                        authState.profile.id,
-                                        todo.id,
-                                      );
-                                    },
-                                    onChecked: (value) {
-                                      todoContext.read<TodoCubit>().updateTodo(
-                                        authState.profile.id,
-                                        todo.id,
-                                        todo.name,
-                                        todo.deadline,
-                                        value!,
-                                      );
-                                    },
-                                  ),
-                                );
-                              },
+                            return TabBarView(
+                              controller: _tabController,
+                              children: [
+                                _todosList(
+                                  todoContext,
+                                  todoState,
+                                  authState,
+                                  "You do not have any pending todos.",
+                                ),
+                                _todosList(
+                                  todoContext,
+                                  todoState,
+                                  authState,
+                                  "You do not have any completed todos.",
+                                ),
+                              ],
                             );
                           }
                           return const SizedBox();
@@ -205,11 +244,13 @@ class _TodoPageState extends State<TodoPage> {
                                 ),
                               ),
                             );
+                            return;
                           }
                           context.read<TodoCubit>().addTodo(
                             authState.profile.id,
                             _titleController.text,
                             _selectedDate!,
+                            _tabController.index == 1,
                           );
                           _selectedDate = null;
                           _titleController.text = "";
@@ -241,6 +282,48 @@ class _TodoPageState extends State<TodoPage> {
         boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
       ),
       child: Text(title, style: TextStyle(color: Colors.white, fontSize: 20)),
+    );
+  }
+
+  Widget _todosList(
+    BuildContext todoContext,
+    TodoLoaded todoState,
+    AuthSuccess authState,
+    String emptyText,
+  ) {
+    if (todoState.todos.isEmpty) {
+      return EmptyWidget(text: emptyText);
+    }
+    return ListView.builder(
+      itemCount: todoState.todos.length,
+      itemBuilder: (context, index) {
+        final todo = todoState.todos[index];
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: TodoCard(
+            title: todo.name,
+            deadline: todo.deadline,
+            isChecked: todo.isCompleted,
+            onDelete: () {
+              todoContext.read<TodoCubit>().deleteTodo(
+                authState.profile.id,
+                todo.id,
+                _tabController.index == 1,
+              );
+            },
+            onChecked: (value) {
+              todoContext.read<TodoCubit>().updateTodo(
+                authState.profile.id,
+                todo.id,
+                todo.name,
+                todo.deadline,
+                value!,
+                _tabController.index == 1,
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

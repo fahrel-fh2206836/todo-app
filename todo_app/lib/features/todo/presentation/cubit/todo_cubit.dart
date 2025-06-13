@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:todo_app/core/app_constants.dart';
 import 'package:todo_app/features/todo/domain/repositories/todo_repository.dart';
 import 'package:todo_app/features/todo/presentation/cubit/todo_state.dart';
 
@@ -7,20 +8,27 @@ class TodoCubit extends Cubit<TodoState> {
 
   TodoCubit(this.todoRepository) : super(TodoInitial());
 
-  Future<void> getTodos(String userId) async {
+  Future<void> getTodos(String userId, [bool? isCompleted]) async {
     emit(TodoLoading());
     try {
-      final todos = await todoRepository.getTodos(userId);
+      final todos = (isCompleted == null)
+          ? await todoRepository.getTodos(userId)
+          : await todoRepository.getTodos(userId, isCompleted);
       emit(TodoLoaded(todos));
     } catch (e) {
       emit(TodoFailure(e.toString()));
     }
   }
 
-  Future<void> addTodo(String userId, String name, DateTime deadline) async {
+  Future<void> addTodo(
+    String userId,
+    String name,
+    DateTime deadline, [
+    bool? showCompleted,
+  ]) async {
     try {
       await todoRepository.addTodo(name, deadline);
-      await getTodos(userId);
+      await getTodos(userId, showCompleted);
     } catch (e) {
       emit(TodoFailure(e.toString()));
     }
@@ -31,20 +39,38 @@ class TodoCubit extends Cubit<TodoState> {
     String todoId,
     String name,
     DateTime deadline,
-    bool isCompleted,
-  ) async {
+    bool isCompleted, [
+    bool? showCompleted,
+  ]) async {
     try {
       await todoRepository.updateTodo(todoId, name, deadline, isCompleted);
-      await getTodos(userId);
+      await getTodos(userId, showCompleted);
     } catch (e) {
       emit(TodoFailure(e.toString()));
     }
   }
 
-  Future<void> deleteTodo(String userId, String todoId) async {
+  Future<void> deleteTodo(
+    String userId,
+    String todoId, [
+    bool? showCompleted,
+  ]) async {
     try {
       await todoRepository.deleteTodo(todoId);
-      await getTodos(userId);
+      await getTodos(userId, showCompleted);
+    } catch (e) {
+      emit(TodoFailure(e.toString()));
+    }
+  }
+
+  void onTabChanged() {
+    emit(TodoLoading());
+  }
+
+  Future<void> getCountTodosByStatus(String userId, TodoStatus status) async {
+    try {
+      final count = await todoRepository.getCountTodosByStatus(userId, status);
+      emit(TodoCountLoaded(count));
     } catch (e) {
       emit(TodoFailure(e.toString()));
     }

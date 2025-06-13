@@ -22,3 +22,7 @@ class AppConstants {
   static const String passwordTooShort = 'Password must be at least 6 characters';
   static const String todoTitleRequired = 'Todo title is required';
 } 
+
+enum TodoStatus {
+  pending, completed, overdue
+}

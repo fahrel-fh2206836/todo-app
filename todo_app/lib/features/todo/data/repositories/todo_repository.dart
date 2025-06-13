@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:todo_app/core/app_constants.dart';
 import 'package:todo_app/features/todo/domain/entities/todo.dart';
 import 'package:todo_app/features/todo/domain/repositories/todo_repository.dart';
 
@@ -37,15 +38,52 @@ class TodoRepositoryImpl implements TodoRepository {
   }
 
   @override
-  Future<List<Todo>> getTodos(String userId) async {
-    final data = await supabase
-        .from('todo')
-        .select()
-        .eq('profile_id', userId)
-        .order('deadline', ascending: false);
+  Future<List<Todo>> getTodos(String userId, [bool? isCompleted]) async {
+    final data = isCompleted == null
+        ? await supabase
+              .from('todo')
+              .select()
+              .eq('profile_id', userId)
+              .order('deadline', ascending: false)
+        : await supabase
+              .from('todo')
+              .select()
+              .eq('profile_id', userId)
+              .eq('is_completed', isCompleted)
+              .order('deadline', ascending: false);
 
     final List<Todo> todos = data.map((item) => Todo.fromJson(item)).toList();
 
     return todos;
+  }
+
+  @override
+  Future<int> getCountTodosByStatus(String userId, TodoStatus status) async {
+    if (status == TodoStatus.pending) {
+      final response = await supabase
+          .from('todo')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('is_completed', false)
+          .count(CountOption.exact);
+      return response.count;
+    } else if (status == TodoStatus.completed) {
+      final response = await supabase
+          .from('todo')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('is_completed', true)
+          .count(CountOption.exact);
+      return response.count;
+    } else {
+      final response = await supabase
+          .from('todo')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('is_completed', false)
+          .lt('deadline', DateTime.now().toIso8601String())
+          .count(CountOption.exact);
+      return response.count;
+    }
   }
 }
