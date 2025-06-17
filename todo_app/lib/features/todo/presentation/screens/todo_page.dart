@@ -76,7 +76,6 @@ class _TodoPageState extends State<TodoPage>
       });
     }
   }
-  
 
   @override
   Widget build(BuildContext context) {
@@ -241,6 +240,11 @@ class _TodoPageState extends State<TodoPage>
                             readOnly: true,
                             onTap: _selectDate,
                           ),
+                          SizedBox(height: 10),
+                          Text(
+                            "Ensure both fields are filled, otherwise the new todo won't be created!",
+                            style: TextStyle(color: AppTheme.errorColor),
+                          ),
                         ],
                       ),
                     ),
@@ -249,18 +253,6 @@ class _TodoPageState extends State<TodoPage>
                         onPressed: () {
                           if (_selectedDate == null ||
                               _titleController.text.isEmpty) {
-                            ScaffoldMessenger.of(dialogContext).showSnackBar(
-                              SnackBar(
-                                content: Text("Fill all fields!"),
-                                backgroundColor: Theme.of(
-                                  context,
-                                ).colorScheme.error,
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                            );
                             return;
                           }
                           context.read<TodoCubit>().addTodo(
