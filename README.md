@@ -4,7 +4,7 @@ A modern, feature-rich Todo application built with Flutter and Supabase, impleme
 
 ## Features
 
-- 🔐 User Authentication (Email/Password and Google Sign-in)
+- 🔐 User Authentication (Email/Password)
 - ✨ Create, Read, Update, and Delete Todo items
 - 🎨 Modern and responsive UI design
 - 🌐 Real-time data synchronization with Supabase
@@ -27,7 +27,6 @@ A modern, feature-rich Todo application built with Flutter and Supabase, impleme
 - Flutter SDK (^3.8.0)
 - Dart SDK
 - Supabase account
-- Google Cloud Console project (for Google Sign-in)
 
 ### Installation
 
