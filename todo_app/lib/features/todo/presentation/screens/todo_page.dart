@@ -249,7 +249,7 @@ class _TodoPageState extends State<TodoPage>
                         onPressed: () {
                           if (_selectedDate == null ||
                               _titleController.text.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            ScaffoldMessenger.of(dialogContext).showSnackBar(
                               SnackBar(
                                 content: Text("Fill all fields!"),
                                 backgroundColor: Theme.of(
