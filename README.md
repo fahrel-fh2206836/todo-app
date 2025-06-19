@@ -78,8 +78,4 @@ The project follows clean architecture principles with the following layers:
 - **Domain Layer**: Business logic and entities
 - **Data Layer**: Repositories and data sources
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 
