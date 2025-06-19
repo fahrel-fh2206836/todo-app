@@ -8,7 +8,7 @@ A modern, feature-rich Todo application built with Flutter and Supabase, impleme
 - ✨ Create, Read, Update, and Delete Todo items
 - 🎨 Modern and responsive UI design
 - 🌐 Real-time data synchronization with Supabase
-- 📱 Cross-platform support (Android, iOS, Web, Windows, Linux, macOS)
+- 📱 Cross-platform support (Android, iOS)
 
 ## Tech Stack
 
