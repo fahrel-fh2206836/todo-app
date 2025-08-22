@@ -56,9 +56,6 @@ class _RegisterPageState extends State<RegisterPage> {
           }
         },
         builder: (context, state) {
-          if (state is AuthLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
           return SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -121,29 +118,26 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
-                      onPressed: state is AuthLoading
-                          ? null
-                          : () {
-                              if (_passwordController.text ==
-                                  _confirmPasswordController.text) {
-                                context.read<AuthCubit>().register(
-                                  _emailController.text,
-                                  _passwordController.text,
-                                  _fullNameController.text.trim(),
-                                );
-                              } else {
-                                context.read<AuthCubit>().setAuthFailure("Password are not matching!");
-                              }
-                            },
-                      child: state is AuthLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Text('Register'),
+                      onPressed: () {
+                        if (_fullNameController.text.trim().isEmpty ||
+                            _emailController.text.isEmpty ||
+                            _passwordController.text.isEmpty ||
+                            _confirmPasswordController.text.isEmpty) {
+                          // Show error for empty fields
+                          context.read<AuthCubit>().setAuthFailure("Please fill in all fields");
+                        } else if (_passwordController.text !=
+                            _confirmPasswordController.text) {
+                          // Show error for password mismatch
+                          context.read<AuthCubit>().setAuthFailure("Passwords are not matching!");
+                        } else {
+                          context.read<AuthCubit>().register(
+                            _emailController.text,
+                            _passwordController.text,
+                            _fullNameController.text.trim(),
+                          );
+                        }
+                      },
+                      child: const Text('Register'),
                     ),
                     const SizedBox(height: 30),
                     RichText(
@@ -160,7 +154,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
-                                context.pushNamed(AppRouter.loginRoute.name);
+                                context.pushReplacementNamed(AppRouter.loginRoute.name);
                               },
                           ),
                         ],

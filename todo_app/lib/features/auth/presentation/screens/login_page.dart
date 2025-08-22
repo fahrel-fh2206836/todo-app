@@ -34,12 +34,12 @@ class _LoginPageState extends State<LoginPage> {
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is AuthSuccess) {
-            context.pushNamed(AppRouter.todoRoute.name);
+            context.pushReplacementNamed(AppRouter.todoRoute.name);
           }
           if (state is AuthFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text("Incorrect Credentials!"),
+                content: Text(state.error),
                 backgroundColor: Theme.of(context).colorScheme.error,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
@@ -50,9 +50,6 @@ class _LoginPageState extends State<LoginPage> {
           }
         },
         builder: (context, state) {
-          if (state is AuthLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
           return SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -93,25 +90,19 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
-                      onPressed: state is AuthLoading
-                          ? null
-                          : () {
-                              context.read<AuthCubit>().login(
-                                _emailController.text,
-                                _passwordController.text,
-                              );
-                              _emailController.clear();
-                              _passwordController.clear();
-                            },
-                      child: state is AuthLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Text('Login'),
+                      onPressed: () {
+                        if (_emailController.text.isEmpty ||
+                            _passwordController.text.isEmpty) {
+                          // Show error for empty fields
+                          context.read<AuthCubit>().setAuthFailure("Please fill in all fields");
+                        } else {
+                          context.read<AuthCubit>().login(
+                            _emailController.text,
+                            _passwordController.text,
+                          );
+                        }
+                      },
+                      child: const Text('Login'),
                     ),
                     const SizedBox(height: 30),
                     RichText(
@@ -128,9 +119,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             recognizer: TapGestureRecognizer()
                               ..onTap = () {
-                                context.pushNamed(
-                                  AppRouter.registerRoute.name,
-                                );
+                                context.pushReplacementNamed(AppRouter.registerRoute.name);
                               },
                           ),
                         ],

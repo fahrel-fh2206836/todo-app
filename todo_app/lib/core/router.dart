@@ -1,6 +1,9 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:todo_app/features/auth/presentation/screens/login_page.dart';
 import 'package:todo_app/features/auth/presentation/screens/register_page.dart';
+import 'package:todo_app/features/todo/data/repositories/todo_repository.dart';
+import 'package:todo_app/features/todo/presentation/cubit/todo_cubit.dart';
 import 'package:todo_app/features/todo/presentation/screens/todo_page.dart';
 
 class AppRouter {
@@ -25,7 +28,7 @@ class AppRouter {
       GoRoute(
         path: todoRoute.path,
         name: todoRoute.name,
-        builder: (context, state) => const TodoPage(),
+        builder: (context, state) => BlocProvider(create: (_) => TodoCubit(TodoRepositoryImpl()), child: const TodoPage()),
       ),
     ],
   );

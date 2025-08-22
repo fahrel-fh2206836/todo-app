@@ -14,24 +14,29 @@ class AuthCubit extends Cubit<AuthState> {
       final profile = await authRepository.getUser();
       emit(AuthSuccess(profile));
     } catch (e) {
-      emit(AuthFailure(e.toString()));
+      emit(AuthFailure("Incorrect or Missing Credentials!"));
     }
   }
 
-  Future<void> register(String email, String password, String displayName) async {
+  Future<void> register(
+    String email,
+    String password,
+    String displayName,
+  ) async {
     emit(AuthLoading());
     try {
       await authRepository.register(email, password, displayName);
       final profile = await authRepository.getUser();
       emit(AuthSuccess(profile));
     } catch (e) {
-      emit(AuthFailure(e.toString()));
+      emit(AuthFailure("Ensure that all fields are filled in correctly!"));
     }
   }
 
-   Future<void> setAuthFailure(String e) async {
+  Future<void> setAuthFailure(String e) async {
     emit(AuthFailure(e));
-   }
+  }
+
 
   Future<void> logout() async {
     await authRepository.logout();
