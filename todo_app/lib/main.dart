@@ -12,7 +12,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
   await Supabase.initialize(
-    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
+    anonKey: dotenv.env['SUPABASE_PUBLISHABLE_KEY']!,
     url: dotenv.env['SUPABASE_URL']!,
   );
 
