@@ -18,7 +18,7 @@ class Todo {
   factory Todo.fromJson(Map<String, dynamic> json) {
     return Todo(
       id: json['id'],
-      profileId: json['profile_id'],
+      profileId: json['user_id'],
       name: json['name'],
       isCompleted: json['is_completed'],
       deadline: DateTime.parse(json['deadline']),
@@ -29,7 +29,7 @@ class Todo {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'profile_id': profileId,
+      'user_id': profileId,
       'name': name,
       'is_completed': isCompleted,
       'deadline': deadline.toIso8601String(),

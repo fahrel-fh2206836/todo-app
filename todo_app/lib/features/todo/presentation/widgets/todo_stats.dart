@@ -18,6 +18,28 @@ class TodoStat extends StatelessWidget {
     super.key,
   });
 
+  int? _getCount(dynamic todoState, TodoStatus todoStatus) {
+    if (todoState is TodoLoaded) {
+      switch (todoStatus) {
+        case TodoStatus.completed:
+          return todoState.completedCount;
+        case TodoStatus.pending:
+          return todoState.pendingCount;
+        case TodoStatus.overdue:
+          return todoState.overdueCount;
+      }
+    } else if (todoState is TodoLoading) {
+      switch (todoStatus) {
+        case TodoStatus.completed:
+          return todoState.completedCount;
+        case TodoStatus.pending:
+          return todoState.pendingCount;
+        case TodoStatus.overdue:
+          return todoState.overdueCount;
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -45,15 +67,12 @@ class TodoStat extends StatelessWidget {
               Text(title),
             ],
           ),
-          if (todoState is TodoLoading) CircularProgressIndicator(),
+          if (todoState is TodoLoading)
+            (todoState as TodoLoading).completedCount == null
+                ? CircularProgressIndicator()
+                : Text("${_getCount(todoState, todoStatus)}"),
           if (todoState is TodoLoaded)
-            Text(
-              "${todoStatus == TodoStatus.completed
-                  ? (todoState as TodoLoaded).completedCount
-                  : todoStatus == TodoStatus.pending
-                  ? (todoState as TodoLoaded).pendingCount
-                  : (todoState as TodoLoaded).overdueCount}",
-            ),
+            Text("${_getCount(todoState, todoStatus)}"),
         ],
       ),
     );

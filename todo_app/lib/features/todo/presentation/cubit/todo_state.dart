@@ -4,7 +4,13 @@ abstract class TodoState {}
 
 class TodoInitial extends TodoState {}
 
-class TodoLoading extends TodoState {}
+class TodoLoading extends TodoState {
+  final int? completedCount;
+  final int? pendingCount;
+  final int? overdueCount;
+
+  TodoLoading({this.completedCount, this.pendingCount, this.overdueCount});
+}
 
 class TodoLoaded extends TodoState {
   final List<Todo> todos;
@@ -12,7 +18,12 @@ class TodoLoaded extends TodoState {
   final int completedCount;
   final int overdueCount;
 
-  TodoLoaded(this.todos, this.pendingCount, this.completedCount, this.overdueCount);
+  TodoLoaded(
+    this.todos,
+    this.pendingCount,
+    this.completedCount,
+    this.overdueCount,
+  );
 }
 
 class TodoFailure extends TodoState {

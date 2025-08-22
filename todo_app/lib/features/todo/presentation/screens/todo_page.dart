@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:todo_app/core/app_constants.dart';
 import 'package:todo_app/core/app_theme.dart';
+import 'package:todo_app/core/router.dart';
 import 'package:todo_app/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:todo_app/features/auth/presentation/cubit/auth_state.dart';
 import 'package:todo_app/features/todo/domain/entities/todo.dart';
@@ -24,7 +25,11 @@ class _TodoPageState extends State<TodoPage>
   final _titleController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   late TabController _tabController;
+
   DateTime? _selectedDate;
+  int? completedTodosCount;
+  int? pendingTodosCount;
+  int? overdueTodosCount;
 
   @override
   void initState() {
@@ -41,7 +46,6 @@ class _TodoPageState extends State<TodoPage>
   }
 
   void _onTabChanged() {
-    context.read<TodoCubit>().onTabChanged();
     if (_tabController.indexIsChanging)
       return; // Prevent during swipe animation
     final isCompleted = _tabController.index == 1;
@@ -50,7 +54,7 @@ class _TodoPageState extends State<TodoPage>
         : null;
 
     if (userId != null) {
-      context.read<TodoCubit>().getTodos(userId, isCompleted);
+      context.read<TodoCubit>().getTodos(userId, isCompleted, completedTodosCount, pendingTodosCount, overdueTodosCount);
     }
   }
 
@@ -64,7 +68,7 @@ class _TodoPageState extends State<TodoPage>
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate ?? DateTime.now(),
-      firstDate: DateTime(2000),
+      firstDate: DateTime.now(),
       lastDate: DateTime(2100),
     );
 
@@ -96,7 +100,7 @@ class _TodoPageState extends State<TodoPage>
                 IconButton(
                   onPressed: () {
                     authContext.read<AuthCubit>().logout();
-                    authContext.pop();
+                    context.goNamed(AppRouter.loginRoute.name);
                   },
                   icon: Icon(Icons.logout),
                 ),
@@ -115,13 +119,18 @@ class _TodoPageState extends State<TodoPage>
                         if (todoState is TodoFailure) {
                           return Center(child: Text(todoState.error));
                         }
+                        if(todoState is TodoLoaded) {
+                          completedTodosCount = todoState.completedCount;
+                          pendingTodosCount = todoState.pendingCount;
+                          overdueTodosCount = todoState.overdueCount;
+                        }
                         return Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             TodoStat(
                               icon: Icons.check,
                               iconBgColor: AppTheme.accentColor,
-                              title: "Finished Todos",
+                              title: "Completed Todos",
                               todoState: todoState,
                               todoStatus: TodoStatus.completed,
                             ),
@@ -219,7 +228,7 @@ class _TodoPageState extends State<TodoPage>
                   builder: (dialogContext) => AlertDialog(
                     title: const Text('Add Todo'),
                     content: SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.15,
+                      height: MediaQuery.of(context).size.height * 0.225,
                       child: Column(
                         children: [
                           TextField(
@@ -240,10 +249,22 @@ class _TodoPageState extends State<TodoPage>
                             readOnly: true,
                             onTap: _selectDate,
                           ),
-                          SizedBox(height: 10),
-                          Text(
-                            "Ensure both fields are filled, otherwise the new todo won't be created!",
-                            style: TextStyle(color: AppTheme.errorColor),
+                          SizedBox(height: 12.5),
+                          RichText(
+                            textAlign: TextAlign.left,
+                            text: TextSpan(
+                              style: TextStyle(color: AppTheme.errorColor),
+                              children: [
+                                TextSpan(
+                                  text: 'Note: ',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                TextSpan(
+                                  text:
+                                      "Ensure both fields are filled, otherwise the new todo won't be created!",
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),

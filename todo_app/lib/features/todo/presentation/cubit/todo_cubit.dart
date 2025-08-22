@@ -8,8 +8,20 @@ class TodoCubit extends Cubit<TodoState> {
 
   TodoCubit(this.todoRepository) : super(TodoInitial());
 
-  Future<void> getTodos(String userId, [bool? isCompleted]) async {
-    emit(TodoLoading());
+  Future<void> getTodos(
+    String userId, [
+    bool? isCompleted,
+    int? completedCount,
+    int? pendingCount,
+    int? overdueCount,
+  ]) async {
+    emit(
+      TodoLoading(
+        completedCount: completedCount,
+        pendingCount: pendingCount,
+        overdueCount: overdueCount,
+      ),
+    );
     try {
       final todos = (isCompleted == null)
           ? await todoRepository.getTodos(userId)
@@ -75,7 +87,13 @@ class TodoCubit extends Cubit<TodoState> {
     }
   }
 
-  void onTabChanged() {
-    emit(TodoLoading());
+  void onTabChanged(int? completedCount, int? pendingCount, int? overdueCount) {
+    emit(
+      TodoLoading(
+        completedCount: completedCount,
+        pendingCount: pendingCount,
+        overdueCount: overdueCount,
+      ),
+    );
   }
 }
