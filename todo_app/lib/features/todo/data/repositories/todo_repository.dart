@@ -9,7 +9,7 @@ class TodoRepositoryImpl implements TodoRepository {
   @override
   Future<void> addTodo(String name, DateTime deadline) async {
     await supabase.from('todo').insert({
-      'profile_id': supabase.auth.currentUser!.id,
+      'user_id': supabase.auth.currentUser!.id,
       'name': name,
       'deadline': deadline.toIso8601String(),
     });
@@ -43,12 +43,12 @@ class TodoRepositoryImpl implements TodoRepository {
         ? await supabase
               .from('todo')
               .select()
-              .eq('profile_id', userId)
+              .eq('user_id', userId)
               .order('deadline', ascending: false)
         : await supabase
               .from('todo')
               .select()
-              .eq('profile_id', userId)
+              .eq('user_id', userId)
               .eq('is_completed', isCompleted)
               .order('deadline', ascending: false);
 
@@ -63,7 +63,7 @@ class TodoRepositoryImpl implements TodoRepository {
       final response = await supabase
           .from('todo')
           .select('id')
-          .eq('profile_id', userId)
+          .eq('user_id', userId)
           .eq('is_completed', false)
           .count();
       return response.count;
@@ -71,7 +71,7 @@ class TodoRepositoryImpl implements TodoRepository {
       final response = await supabase
           .from('todo')
           .select('id')
-          .eq('profile_id', userId)
+          .eq('user_id', userId)
           .eq('is_completed', true)
           .count();
       return response.count;
@@ -79,7 +79,7 @@ class TodoRepositoryImpl implements TodoRepository {
       final response = await supabase
           .from('todo')
           .select('id')
-          .eq('profile_id', userId)
+          .eq('user_id', userId)
           .eq('is_completed', false)
           .lt('deadline', DateTime.now().toIso8601String())
           .count();
